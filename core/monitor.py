@@ -11,6 +11,7 @@ import paho.mqtt.client as mqtt
 import os
 import logging
 
+
 ### Initialize logger for the module
 logger = logging.getLogger('voltazero_monitor')
 
@@ -18,8 +19,27 @@ logger = logging.getLogger('voltazero_monitor')
 
 class Monitor(Process):
     
+    """ Initiates a new process to connect to the server and retrieve telemetry data
+        using the MQTT protocol
+
+        :param connection_handler: database connection handler
+        :param appconfig: the application configuration object
+        :param q: the telemetry data queue
+        :param interval: the time interval at which telemetry data is stored
+        :param batch_size: the maximum number of telemetry records stored at once
+        :param id: the recorder thread identifier
+        :param running: an event controlling the thread operation        
+    """
 
     def __init__(self, appconfig, q, client_id):
+
+        """ Initializes the monitor object
+
+        :param q: the telemetry data queue
+        :param appconfig: the application configuration object        
+        :param client_id: the assigned client identifier
+        """
+
         super(Monitor, self).__init__()
         self.appconfig = appconfig
         self.q = q
@@ -149,7 +169,7 @@ class Monitor(Process):
                 bz = 'NULL'
 
             return t0, t1, th, bz, lg, ir, id
-            
+
         except Exception as e:
             logger.error(f"Exception: {str(e)}")
             return None
