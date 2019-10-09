@@ -50,6 +50,12 @@ class Monitor(Process):
 
 
     def init_connection(self):
+
+        """ Initializes the connection to the MQTT broker
+
+            :return: 0 if success or -1 if an exception arises
+        """
+
         try:
             self.client = mqtt.Client(client_id=self.client_id, clean_session=True)
             self.client.username_pw_set(username=self.appconfig.username, password=self.appconfig.secret)
@@ -59,15 +65,21 @@ class Monitor(Process):
             self.client.connect(self.appconfig.host, self.appconfig.port)
             
             return 0
+
         except Exception as e:
             logger.error(f"Exception: {str(e)}")
             return -1
 
 
     def run(self):
+        
+        """ Runs the monitor loop
+
+            :return: 0 if success or -1 if an exception arises
+        """
+
         try:
             self.PID = os.getpid()
-            #print(f"My PID: {self.PID}")
             self.Stopped = False
             self.init_connection()
             
@@ -75,14 +87,20 @@ class Monitor(Process):
                 while not self.Stopped:
                     self.client.loop()
 
-            print(f"Process ID 2: {os.getpid()}")
             return 0
+
         except Exception as e:
             logger.error(f"Exception: {str(e)}")
             return -1
      
 
     def stop(self):
+
+        """ Stops the monitor process
+
+            :return: 0 if success or -1 if an exception arises
+        """
+
         try:
             self.Stopped = True
 
@@ -93,12 +111,22 @@ class Monitor(Process):
                 self.subscribed = False
     
             return 0
+
         except Exception as e:
             logger.error(f"Exception: {str(e)}")
             return -1
 
 
     def on_message(self, client, userdata, message):
+
+        """ The on_message handler parses the MQTT message data and initializes
+            the telemetry object
+
+            :param client: the MQTT client
+            :param userdata: the user data object
+            :param message: the telemetry message
+        """
+
         try:
             if self.q == None:
                 self.q =Queue()
@@ -111,27 +139,52 @@ class Monitor(Process):
 
             self.q.put(tlm)
 
-            print(f'{str(tlm)}')
+            logger.debug(f"{str(tlm)}")
 
         except Exception as e:
             logger.error(f"Exception: {str(e)}")
 
 
     def on_subscribe(self, client, userdata, mid, granted_qos):
+
+        """ The on_subscribe handler attempts to subscribe to the given topic
+
+            :param client: the MQTT client
+            :param userdata: the user data object
+            :param mid: the message identifier
+            :param granted_qos: the granted QoS
+        """
+
         self.subscribed = True
 
 
     def on_connect(self, client, userdata, flags, rc):
+
+        """ The on_connect handler attempts to connect to the MQTT broker
+
+            :param client: the MQTT client
+            :param userdata: the user data object
+            :param flags: a list of flags indicating the clean_session status
+            :param rc: the returned code
+        """
+
         if rc == 0:
             self.connected = True
-            print("connected OK")
+            logger.info(self.parse_return_code(0))
             self.client.subscribe(self.appconfig.topic)
         else:
-            print("Bad connection Returned code=", rc)
+            logger.error(f"{self.parse_return_code(rc)}")
             self.connected = False
 
 
     def handle_telemetry(self, data):
+
+        """ Parses the telemetry data and returns the sensors' readings and device identifier
+
+            :param data: the MQTT message payload
+            :return: t0, t1, th, bz, lg, ir, id: sensors' readings and device identifier
+        """
+
         try:
             if(data["id"] != 'null'):
                 id = data["id"]
@@ -175,3 +228,44 @@ class Monitor(Process):
             return None
 
     
+    def parse_return_code(self, rc):
+
+        try:
+            """ returns the appropriate connection status given the broker's return code
+                got when connection is attempted
+
+            :param rc: the MQTT broker return code
+            :return: connection_status: the actual connection status if success, None otherwise
+            """
+            # 0: Connection successful 
+            if rc == 0:
+                return 'Connection successful '    
+            
+            # 1: Connection refused – incorrect protocol version 
+            if rc == 1:
+                return 'Connection refused – incorrect protocol version '
+
+            #2: Connection refused – invalid client identifier 
+            if rc == 2:
+                return 'Connection refused – invalid client identifier'
+
+            #3: Connection refused – server unavailable 
+            if rc == 3:
+                return 'Connection refused – server unavailable'
+
+            #4: Connection refused – bad username or password 
+            if rc == 4:
+                return 'Connection refused – bad username or password'
+
+            #5: Connection refused – not authorised 
+
+            if rc == 5:
+                return 'Connection refused – not authorised '
+            
+            #6-255: Currently unused.
+            if rc >= 6:
+                return 'Unknown connection status'
+
+        except Exception as e:
+            logger.error(f"Exception: {str(e)}")
+            return None

@@ -22,8 +22,8 @@ if __name__ == '__main__':
     logger = logger.get_logger('voltazero_monitor')
 
     dirpath = os.getcwd()
-    print(f"Current directory is: {dirpath}")
-    print(f"Main ID: {os.getpid()}")
+    #print(f"Current directory is: {dirpath}")
+    #print(f"Main ID: {os.getpid()}")
 
     ## Initialization
     config_file = "./core/config.json"

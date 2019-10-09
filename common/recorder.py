@@ -113,9 +113,7 @@ class Recorder(Thread):
             while(i < size and not self.q.empty()):
                 tlm = self.q.get()            
                 arr = (tlm.t0, tlm.t1, tlm.th, tlm.ir, tlm.ls, tlm.bz, tlm.timestamp)
-                data.append(arr)
-
-                #print(f"Added tlm: {arr}")                
+                data.append(arr)             
                 i = i + 1
 
             if data != []:

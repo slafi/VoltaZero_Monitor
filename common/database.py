@@ -52,7 +52,7 @@ def connect(db_filename, db_path=""):
         db_name = os.path.join(db_path, db_filename)
         connection_handler = sqlite3.connect(db_name)
         connection_handler.text_factory = sqlite3.OptimizedUnicode
-        print(sqlite3.version)
+        #print(sqlite3.version)
 
         return connection_handler
     except sqlite3.Error as e:
