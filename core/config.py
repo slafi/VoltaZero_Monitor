@@ -27,6 +27,7 @@ class AppConfig():
         self.table_name = None
         self.time_window = None
         self.batch_size = None
+        self.db_query_interval = None
 
 
     def load_app_config(self):
@@ -71,6 +72,7 @@ class AppConfig():
             self.table_name = data["table_name"]
             self.time_window = data["time_window"]
             self.batch_size = data["batch_size"]
+            self.db_query_interval = data["db_query_interval"]
             
             return 0
 

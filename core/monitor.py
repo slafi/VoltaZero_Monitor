@@ -39,14 +39,16 @@ class Monitor(Process):
         :param appconfig: the application configuration object        
         :param client_id: the assigned client identifier
         """
-
+        print(f'Created1: {os.getpid()}')
         super(Monitor, self).__init__()
+        print(f'Created2: {os.getpid()}')
         self.appconfig = appconfig
         self.q = q
         self.subscribed = False
         self.connected = False
         self.client_id = client_id
         self.Stopped = True
+        self.client = None
 
 
     def init_connection(self):
@@ -80,6 +82,7 @@ class Monitor(Process):
 
         try:
             self.PID = os.getpid()
+            print(f'Created: {os.getpid()}')
             self.Stopped = False
             self.init_connection()
             
@@ -92,6 +95,10 @@ class Monitor(Process):
         except Exception as e:
             logger.error(f"Exception: {str(e)}")
             return -1
+
+        """except KeyboardInterrupt:
+            self.client.disconnect()
+            return 0"""
      
 
     def stop(self):
@@ -104,12 +111,15 @@ class Monitor(Process):
         try:
             self.Stopped = True
 
+            print(f'Created: {os.getpid()}')
             if self.client != None and self.connected == True:
                 self.client.unsubscribe(self.appconfig.topic)
                 self.client.disconnect()
                 self.connected = False
                 self.subscribed = False
-    
+
+            super(Monitor, self).terminate()
+
             return 0
 
         except Exception as e:
