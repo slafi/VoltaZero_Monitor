@@ -2,6 +2,7 @@ import json
 import os.path, os, sys, inspect
 import logging
 
+
 ### Initialize logger for the module
 logger = logging.getLogger('voltazero_monitor')
 
@@ -26,8 +27,10 @@ class AppConfig():
         self.database_filename = None
         self.table_name = None
         self.time_window = None
-        self.batch_size = None
+        self.recorder_batch_size = None
+        self.recorder_interval = None
         self.db_query_interval = None
+        self.viewer_interval = None
 
 
     def load_app_config(self):
@@ -49,7 +52,7 @@ class AppConfig():
                     return rcode
             
         except Exception as e:
-            logger.error('Exception: {}'.format(e))
+            logger.error(f'Exception: {str(e)}')
             return -2
             
 
@@ -62,20 +65,29 @@ class AppConfig():
 
         try:
 
+            ## MQTT parameters
             self.host = data["host"]
             self.port = data["port"]
             self.username = data["username"]
             self.secret = data["secret"]
             self.mac_address = data["mac_address"]
             self.topic = data["topic"]
+            
+            ## Database parameters
             self.database_filename = data["database"]
             self.table_name = data["table_name"]
-            self.time_window = data["time_window"]
-            self.batch_size = data["batch_size"]
+            
+            ## Recorder parameters
+            self.recorder_batch_size = data["recorder_batch_size"]
+            self.recorder_interval = data["recorder_interval"]
+
+            ## Viewer parameters
             self.db_query_interval = data["db_query_interval"]
+            self.viewer_interval = data["viewer_interval"]
+            self.time_window = data["time_window"]
             
             return 0
 
         except Exception as e:
-            logger.error('Exception: {}'.format(e))
+            logger.error(f'Exception: {str(e)}')
             return -1

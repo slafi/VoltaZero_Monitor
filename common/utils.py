@@ -24,7 +24,9 @@ def clear_console():
 
 
 def write_to_file(output_file, mode, text=''):
+
     """ Writes a text string to a file """
+
     try:
         ## Open output text file
         fid = open(output_file,mode)
@@ -41,7 +43,28 @@ def write_to_file(output_file, mode, text=''):
 def get_unix_timestamp():
 
     """Returns the UNIX timestamp from the current time and date"""
+    
     # current date and time
     now = datetime.now()
     return datetime.timestamp(now)
 
+
+def get_datetime_with_offset(date, offset = 300):
+    
+    """ Returns a forward or backward date given a date and an offset time in seconds
+
+        :param offset: offset interval in seconds (default: 300s). The offset can be positive or negative
+        :param offset: the reference datetime
+        :return datetime: the anterior datetime
+        :raises Exception: Invalid parameters
+    """
+
+    if (type(offset) is int) and (type(date) is datetime):
+
+        now_ts = datetime.timestamp(date)
+        anterior_ts = now_ts + offset
+
+        return datetime.fromtimestamp(anterior_ts)
+
+    else:
+        raise Exception("Invalid parameters.")

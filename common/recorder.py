@@ -5,6 +5,7 @@ import datetime
 import time
 import logging
 
+
 ### Initialize logger for the module
 logger = logging.getLogger('voltazero_monitor')
 
@@ -23,7 +24,7 @@ class Recorder(Thread):
         :param enabled: a flag indicating if the monitor is enabled        
     """
 
-    def __init__(self, q, appconfig, interval = 5.0, batch_size = 20):
+    def __init__(self, q, appconfig):
 
         """ Initializes the recorder object
 
@@ -36,10 +37,8 @@ class Recorder(Thread):
         Thread.__init__(self)
         self.running = Event()
         self.id = currentThread().getName()
-        self.interval = interval
         self.q = q
         self.appconfig = appconfig
-        self.batch_size = batch_size    
         self.enabled = False  
 
 
@@ -85,8 +84,8 @@ class Recorder(Thread):
         if rcode == 0:
             # insert data in database
             while (self.running.isSet()):
-                self.insert_batch(self.batch_size)                
-                time.sleep(self.interval)                
+                self.insert_batch(self.appconfig.recorder_batch_size)                
+                time.sleep(self.appconfig.recorder_interval)                
 
             ## Store the remaning telemetry records in queue before closing connection
             if(self.enabled and not self.q.empty()):

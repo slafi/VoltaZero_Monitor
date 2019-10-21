@@ -1,5 +1,6 @@
 
 from sqlite3 import Error
+from datetime import datetime
 
 from common import utils, logger
 from core import telemetry
@@ -7,6 +8,7 @@ from core import telemetry
 import sqlite3
 import os, sys, inspect
 import logging
+
 
 ### Initialize logger for the module
 logger = logging.getLogger('voltazero_monitor')
@@ -144,15 +146,15 @@ def retrieve_data(connection_handler, time_window, table_name):
     :return: list of telemetry records or None if exception arises
     """
     try:
-        timestamp = utils.get_unix_timestamp() - time_window
+        timestamp = datetime.fromtimestamp(utils.get_unix_timestamp() - time_window).strftime("%Y/%m/%d %H:%M:%S")
         cursor = connection_handler.cursor()
-        cursor.execute(f"SELECT * FROM {table_name} WHERE timestamp>=?", (timestamp,))
+        cursor.execute(f"SELECT * FROM {table_name} WHERE timestamp >= ? ORDER BY timestamp ASC", (timestamp,))
     
         rows = cursor.fetchall()
     
         data = []
         for row in rows:
-            tlm = telemetry.Telemetry(row["timestamp"], row["t0_value"], row["t1_value"], row["th_value"], row["bz_value"], row["ls_value"], row["ir_value"], row["id"])
+            tlm = telemetry.Telemetry(timestamp=row[7], t0=row[1], t1=row[2], th=row[3], bz=row[6], ls=row[5], ir=row[4], id=f"item_{row[0]}")
             data.append(tlm)
 
         cursor.close()

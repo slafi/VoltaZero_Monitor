@@ -63,7 +63,7 @@ if __name__ == '__main__':
     pmonitor.start()
 
     ## Initialize and start database recorder
-    trecorder = recorder.Recorder(q, appConfig, interval=60.0, batch_size=20)
+    trecorder = recorder.Recorder(q, appConfig)
     trecorder.start()
 
     #StopFlag.wait()

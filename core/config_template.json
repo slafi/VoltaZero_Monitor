@@ -1,13 +1,16 @@
 { 
-    "host": "mqtt.helium.com", 
-    "port": 18103, 
-    "username": "",
-    "secret": "",
+    "host" : "mqtt.helium.com", 
+    "port" : 18103, 
+    "username" : "",
+    "secret" : "",
     "mac_address" : "",
-    "topic": "",
-    "database": "voltazero_database.db",
-    "db_mode" : "create",
-    "time_window" : 300,
+    "topic" : "",
+    "database" : "voltazero_database.db",
+    "db_mode" : "create",    
     "table_name" : "data",
-    "batch_size" : 100
+    "recorder_batch_size" : 100,
+    "db_query_interval" : 5,
+    "time_window" : 300,
+    "viewer_interval" : 5
+
 }
