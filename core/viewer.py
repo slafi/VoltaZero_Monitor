@@ -1,8 +1,9 @@
 
-# Import custom subpackages
+## Import custom subpackages
 from core import config
 from common import utils, database
 
+## Import standard packages
 from platform import system
 from threading import Timer, Thread, Event, currentThread
 
@@ -137,16 +138,18 @@ class Viewer(Thread):
     
         """Updates and plots the curves"""
 
-        min_x_lim = utils.get_anterior_datetime(self.timestamps[0], -10)
-        max_x_lim = utils.get_anterior_datetime(self.timestamps[len(self.timestamps)-1], 10)
+        if (len(self.timestamps) > 0):
+            min_x_lim = utils.get_datetime_with_offset(self.timestamps[0], -10)
+            max_x_lim = utils.get_datetime_with_offset(self.timestamps[len(self.timestamps)-1], 10)
 
-        for i in range(6):
-            if len(self.axs[i].lines) > 0:
-                self.axs[i].lines.remove(self.axs[i].lines[0])
+            for i in range(6):
+                if len(self.axs[i].lines) > 0:
+                    self.axs[i].lines.remove(self.axs[i].lines[0])
 
-            self.axs[i].plot(self.columns[0], self.columns[i+1], color='royalblue')
-            self.axs[i].set_xlim(min_x_lim, max_x_lim)
+                self.axs[i].plot(self.columns[0], self.columns[i+1], color='royalblue')
+                self.axs[i].set_xlim(min_x_lim, max_x_lim)
         
+        plt.savefig(f'img/image_{datetime.datetime.timestamp(datetime.datetime.now())}.png')
         plt.show(block=False)
         plt.pause(0.0001)
 

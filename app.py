@@ -1,7 +1,7 @@
 from multiprocessing import Process, Queue
 
 # Import custom subpackages
-from core import config, monitor
+from core import config, monitor, viewer
 from common import utils, logger, recorder, database
 
 import signal, sys, os
@@ -66,22 +66,33 @@ if __name__ == '__main__':
     trecorder = recorder.Recorder(q, appConfig)
     trecorder.start()
 
-    #StopFlag.wait()
+    ## Start viewer    
+    viewer = viewer.Viewer(appConfig, window_title='Sensors data')
+    viewer.start()
 
+    ## Sleep main thread
     while True:
         try:
-            time.sleep(1)
+            time.sleep(500)
         except KeyboardInterrupt:
-            print("KeyboardInterrupt has been caught.")
-            break
+            print("Stopping all threads and processes...")
+            break  
     
-    ## Stop the monitor process
-    pmonitor.stop()
-    pmonitor.join()
+    try:
 
-    ## Stop the recorder thread
-    trecorder.stop()
-    trecorder.join()
+        ## Stop the monitor process
+        pmonitor.stop()
+        pmonitor.join()
+
+        ## Stop the recorder thread
+        trecorder.stop()
+        trecorder.join()
+
+        ## stop viewer
+        viewer.stop()
+        viewer.join()
+    except Exception as e:
+        print(f'Exception: {str(e)}')
 
     ## For debug, check the data remaining in the queue
     data = []
@@ -91,7 +102,5 @@ if __name__ == '__main__':
 
     print(data)
 
-    ## Launch telemetry viewer
-    #p = Process(target=f, args=('bob',))
-    #p.start()
-    #p.join()
+    
+    

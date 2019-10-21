@@ -43,7 +43,7 @@ def write_to_file(output_file, mode, text=''):
 def get_unix_timestamp():
 
     """Returns the UNIX timestamp from the current time and date"""
-    
+
     # current date and time
     now = datetime.now()
     return datetime.timestamp(now)
@@ -61,10 +61,10 @@ def get_datetime_with_offset(date, offset = 300):
 
     if (type(offset) is int) and (type(date) is datetime):
 
-        now_ts = datetime.timestamp(date)
-        anterior_ts = now_ts + offset
+        ref_ts = datetime.timestamp(date)
+        offset_ts = ref_ts + offset
 
-        return datetime.fromtimestamp(anterior_ts)
+        return datetime.fromtimestamp(offset_ts)
 
     else:
         raise Exception("Invalid parameters.")
