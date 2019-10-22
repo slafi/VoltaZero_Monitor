@@ -1,26 +1,23 @@
 
 from core import telemetry
-from common import logger
 
 from multiprocessing import Process, Queue
 from datetime import datetime
 
-import threading
 import json
 import paho.mqtt.client as mqtt
 import os
 import logging
 
 
-### Initialize logger for the module
+# Initialize logger for the module
 logger = logging.getLogger('voltazero_monitor')
 
 
-
 class Monitor(Process):
-    
-    """ Initiates a new process to connect to the server and retrieve telemetry data
-        using the MQTT protocol
+
+    """ Initiates a new process to connect to the server and retrieve
+        telemetry data using the MQTT protocol
 
         :param connection_handler: database connection handler
         :param appconfig: the application configuration object
@@ -28,7 +25,7 @@ class Monitor(Process):
         :param interval: the time interval at which telemetry data is stored
         :param batch_size: the maximum number of telemetry records stored at once
         :param id: the recorder thread identifier
-        :param running: an event controlling the thread operation        
+        :param running: an event controlling the thread operation
     """
 
     def __init__(self, appconfig, q, client_id):
@@ -36,12 +33,12 @@ class Monitor(Process):
         """ Initializes the monitor object
 
         :param q: the telemetry data queue
-        :param appconfig: the application configuration object        
+        :param appconfig: the application configuration object
         :param client_id: the assigned client identifier
         """
-        print(f'Created1: {os.getpid()}')
+
         super(Monitor, self).__init__()
-        print(f'Created2: {os.getpid()}')
+
         self.appconfig = appconfig
         self.q = q
         self.subscribed = False
@@ -59,13 +56,15 @@ class Monitor(Process):
         """
 
         try:
-            self.client = mqtt.Client(client_id=self.client_id, clean_session=True)
-            self.client.username_pw_set(username=self.appconfig.username, password=self.appconfig.secret)
+            self.client = mqtt.Client(client_id=self.client_id,
+                                      clean_session=True)
+            self.client.username_pw_set(username=self.appconfig.username,
+                                        password=self.appconfig.secret)
             self.client.on_connect = self.on_connect
             self.client.on_message = self.on_message
             self.client.on_subscribe = self.on_subscribe
             self.client.connect(self.appconfig.host, self.appconfig.port)
-            
+
             return 0
 
         except Exception as e:
@@ -74,7 +73,7 @@ class Monitor(Process):
 
 
     def run(self):
-        
+
         """ Runs the monitor loop
 
             :return: 0 if success or -1 if an exception arises
@@ -82,11 +81,12 @@ class Monitor(Process):
 
         try:
             self.PID = os.getpid()
-            print(f'Created: {os.getpid()}')
+            logger.info(f'Monitor PID: {os.getpid()}')
+
             self.Stopped = False
             self.init_connection()
-            
-            if self.client != None:
+
+            if self.client is not None:
                 while not self.Stopped:
                     self.client.loop()
 
@@ -96,10 +96,6 @@ class Monitor(Process):
             logger.error(f"Exception: {str(e)}")
             return -1
 
-        """except KeyboardInterrupt:
-            self.client.disconnect()
-            return 0"""
-     
 
     def stop(self):
 
@@ -111,15 +107,13 @@ class Monitor(Process):
         try:
             self.Stopped = True
 
-            print(f'Created: {os.getpid()}')
-            if self.client != None and self.connected == True:
+            if self.client is not None and self.connected is True:
                 self.client.unsubscribe(self.appconfig.topic)
                 self.client.disconnect()
                 self.connected = False
                 self.subscribed = False
 
             super(Monitor, self).terminate()
-
             return 0
 
         except Exception as e:
@@ -138,12 +132,13 @@ class Monitor(Process):
         """
 
         try:
-            if self.q == None:
-                self.q =Queue()
-            
+            if self.q is None:
+                self.q = Queue()
+
+            # Decode and parse the telemetry data
             data = json.loads(message.payload.decode('ascii'))
             ts = datetime.now().strftime('%Y/%m/%d %H:%M:%S')
-            
+
             t0, t1, th, bz, lg, ir, id = self.handle_telemetry(data)
             tlm = telemetry.Telemetry(timestamp=ts, t0=t0, t1=t1, th=th, bz=bz, ls=lg, ir=ir, id=id)
 
@@ -189,10 +184,12 @@ class Monitor(Process):
 
     def handle_telemetry(self, data):
 
-        """ Parses the telemetry data and returns the sensors' readings and device identifier
+        """ Parses the telemetry data and returns the sensors' readings
+            and device identifier
 
             :param data: the MQTT message payload
-            :return: t0, t1, th, bz, lg, ir, id: sensors' readings and device identifier
+            :return: t0, t1, th, bz, lg, ir, id: sensors' readings and
+            device identifier
         """
 
         try:
@@ -237,7 +234,7 @@ class Monitor(Process):
             logger.error(f"Exception: {str(e)}")
             return None
 
-    
+
     def parse_return_code(self, rc):
 
         try:
@@ -245,34 +242,35 @@ class Monitor(Process):
                 got when connection is attempted
 
             :param rc: the MQTT broker return code
-            :return: connection_status: the actual connection status if success, None otherwise
+            :return: connection_status: the actual connection status
+                     if success, None otherwise
             """
-            # 0: Connection successful 
+            # 0: Connection successful
             if rc == 0:
-                return 'Connection successful '    
-            
-            # 1: Connection refused – incorrect protocol version 
-            if rc == 1:
-                return 'Connection refused – incorrect protocol version '
+                return 'Connection established successfully'
 
-            #2: Connection refused – invalid client identifier 
+            # 1: Connection refused – incorrect protocol version
+            if rc == 1:
+                return 'Connection refused – incorrect protocol version'
+
+            # 2: Connection refused – invalid client identifier
             if rc == 2:
                 return 'Connection refused – invalid client identifier'
 
-            #3: Connection refused – server unavailable 
+            # 3: Connection refused – server unavailable
             if rc == 3:
                 return 'Connection refused – server unavailable'
 
-            #4: Connection refused – bad username or password 
+            # 4: Connection refused – bad username or password
             if rc == 4:
                 return 'Connection refused – bad username or password'
 
-            #5: Connection refused – not authorised 
+            # 5: Connection refused – not authorised
 
             if rc == 5:
-                return 'Connection refused – not authorised '
-            
-            #6-255: Currently unused.
+                return 'Connection refused – not authorised'
+
+            # 6-255: Currently unused.
             if rc >= 6:
                 return 'Unknown connection status'
 

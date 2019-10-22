@@ -3,14 +3,13 @@ import logging
 from logging import handlers
 
 
-
-## Create and return a logging object
+# Create and return a logging object
 def get_logger(label):
 
-    '''This function creates and returns a logging object
+    """This function creates and returns a logging object
 
-        :param label: The label that will be added to the name of the log file    
-    '''
+        :param label: The label that will be added to the name of the log file
+    """
 
     logger = logging.getLogger(label)
     logger.setLevel(logging.DEBUG)
@@ -20,7 +19,7 @@ def get_logger(label):
     ch.setFormatter(format)
     logger.addHandler(ch)
 
-    fh = handlers.RotatingFileHandler('./log_{}.txt'.format(label), maxBytes=(1048576*10), backupCount=10)
+    fh = handlers.RotatingFileHandler(f'./log_{label}.txt', maxBytes=(1048576*10), backupCount=10)
     fh.setFormatter(format)
     logger.addHandler(fh)
 

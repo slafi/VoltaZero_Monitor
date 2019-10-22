@@ -9,8 +9,8 @@
     "db_mode" : "create",    
     "table_name" : "data",
     "recorder_batch_size" : 100,
-    "db_query_interval" : 5,
+    "recorder_interval": 15,
     "time_window" : 300,
-    "viewer_interval" : 5
-
+    "viewer_interval" : 5,
+    "no_viewer" : false
 }

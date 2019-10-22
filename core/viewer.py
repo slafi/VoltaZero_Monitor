@@ -1,19 +1,13 @@
 
-## Import custom subpackages
-from core import config
+# Import custom subpackages
 from common import utils, database
 
-## Import standard packages
+# Import standard packages
 from platform import system
-from threading import Timer, Thread, Event, currentThread
+from threading import Thread, Event, currentThread
 
-import matplotlib
 import matplotlib.dates as mdates
 import matplotlib.ticker as ticker
-from matplotlib import style
-from matplotlib.figure import Figure
-from matplotlib.dates import DateFormatter, MinuteLocator
-
 import matplotlib.pyplot as plt
 import numpy as np
 import datetime
@@ -21,18 +15,18 @@ import time
 import logging
 
 
-### Initialize logger for the module
+# Initialize logger for the module
 logger = logging.getLogger('voltazero_monitor')
 
-## Use WXAgg backend for matplot because Tkinter is not thread-safe
-#matplotlib.use('WXAgg')
+# Use WXAgg backend for matplot because Tkinter is not thread-safe
+# matplotlib.use('WXAgg')
 
-## Specify the plotting style
+# Specify the plotting style
 plt.style.use('ggplot')
 
 
 def plt_maximize():
-    
+
     """ This function maximizes the plot window.
         The original code has been taken from a StackOverflow post,
         but was altered to suite the purpose of this project.
@@ -47,7 +41,7 @@ def plt_maximize():
     elif backend == "TkAgg":
         pos = str(system()).lower()
         if pos == "win32" or pos == 'windows':
-            cfm.window.state('zoomed')              # This works on windows only
+            cfm.window.state('zoomed')        # This works on windows only
         else:
             cfm.resize(*cfm.window.maxsize())
     elif backend == 'QT4Agg':
@@ -60,15 +54,24 @@ def plt_maximize():
         raise RuntimeError("plt_maximize() is not implemented for current backend:", backend)
 
 
-
 class Viewer(Thread):
 
+    """This class runs the telemetry plot viewer
+
+       :param window_title: the plot window title
+       :param appconfig: the application configuration object
+       :param sensor_info: a list of sensor subplots properties
+       :param columns: the list of telemetry data arrays
+       :param enabled: a flag indicating if the viewer is enabled
+       :param id: the viewer thread identifier
+       :param running: an event controlling the thread operation
+    """
 
     def __init__(self, appconfig, window_title='Sensors data'):
-    
+
         """ Initializes the viewer object
 
-        :param appconfig: the application configuration object        
+        :param appconfig: the application configuration object
         :param window_title: the plot window title
         """
 
@@ -76,23 +79,53 @@ class Viewer(Thread):
         self.running = Event()
         self.id = currentThread().getName()
         self.appconfig = appconfig
-        self.enabled = False 
+        self.enabled = False
         self.window_title = window_title
 
-        self.sensors = ["T0 ($^\circ$C)", "T1 ($^\circ$C)", "Th ($^\circ$C)", "IR (V)", "LS (V)", "Buzz. State"]
-        self.timestamps = []
-        self.t0 = []
-        self.t1 = []
-        self.th = []
-        self.ir = []
-        self.bz = []
-        self.ls = []
-        self.columns = [self.timestamps, self.t0, self.t1, self.th, self.ir, self.ls, self.bz]
+        self.sensor_info = [
+                            {
+                                "title": 'T0 ($^\circ$C)',
+                                "min_y_lim": 0,
+                                "max_y_lim": 30,
+                                "enable_y_limits": False
+                            },
+                            {
+                                "title": "T1 ($^\circ$C)",
+                                "min_y_lim": 0,
+                                "max_y_lim": 100,
+                                "enable_y_limits": True
+                            },
+                            {
+                                "title": "Th ($^\circ$C)",
+                                "min_y_lim": 0,
+                                "max_y_lim": 100,
+                                "enable_y_limits": True
+                            },
+                            {
+                                "title": "IR (V)",
+                                "min_y_lim": -0.1,
+                                "max_y_lim": 5.1,
+                                "enable_y_limits": True
+                            },
+                            {
+                                "title": "LS (V)",
+                                "min_y_lim": -0.1,
+                                "max_y_lim": 5.1,
+                                "enable_y_limits": True
+                            },
+                            {
+                                "title": "Buzz. State",
+                                "min_y_lim": -0.1,
+                                "max_y_lim": 1.1,
+                                "enable_y_limits": True
+                            }
+                        ]
+        self.columns = [[], [], [], [], [], [], []]
 
 
     def start(self):
-    
-        """Starts the viewer thread"""        
+
+        """Starts the viewer thread"""
 
         self.running.set()
         self.enabled = True
@@ -100,14 +133,14 @@ class Viewer(Thread):
 
 
     def stop(self):
-    
-        """Stops the viewer thread"""  
 
-        self.running.clear()  
+        """Stops the viewer thread"""
+
+        self.running.clear()
 
 
     def run(self):
-    
+
         """ Runs the viewer infinite loop """
 
         # Initialize plot
@@ -116,18 +149,19 @@ class Viewer(Thread):
         try:
             # insert data in database
             while (self.running.isSet()):
-                ## Update plot
-                self.fetch_and_format_data()
+                # Update plot
+                nrecords = self.fetch_and_format_data()
 
-                ## Set window title
-                self.fig.canvas.set_window_title(f"{self.window_title} - Last update: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")  
-                
-                self.draw()
+                # Set window title
+                self.fig.canvas.set_window_title(f"""{self.window_title} - [Last update: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')} - Retrieved datapoints: {nrecords}]""")
 
-                ## Sleep viewer thread
-                time.sleep(self.appconfig.viewer_interval)                
+                if (nrecords > 0):
+                    self.draw()
 
-            ## Declare the thread instance disabled
+                # Sleep viewer thread
+                time.sleep(self.appconfig.viewer_interval)
+
+            # Declare the thread instance disabled
             self.enabled = False
 
         except Exception as e:
@@ -135,23 +169,28 @@ class Viewer(Thread):
 
 
     def draw(self):
-    
+
         """Updates and plots the curves"""
 
-        if (len(self.timestamps) > 0):
-            min_x_lim = utils.get_datetime_with_offset(self.timestamps[0], -10)
-            max_x_lim = utils.get_datetime_with_offset(self.timestamps[len(self.timestamps)-1], 10)
+        if (len(self.columns[0]) > 0):
+            min_x_lim = utils.get_datetime_with_offset(self.columns[0][0], -10)
+            max_x_lim = utils.get_datetime_with_offset(self.columns[0][len(self.columns[0])-1], 10)
 
             for i in range(6):
                 if len(self.axs[i].lines) > 0:
                     self.axs[i].lines.remove(self.axs[i].lines[0])
 
-                self.axs[i].plot(self.columns[0], self.columns[i+1], color='royalblue')
+                self.axs[i].plot(self.columns[0], self.columns[i+1],
+                                 color='royalblue',
+                                 marker="o")
                 self.axs[i].set_xlim(min_x_lim, max_x_lim)
-        
-        plt.savefig(f'img/image_{datetime.datetime.timestamp(datetime.datetime.now())}.png')
-        plt.show(block=False)
-        plt.pause(0.0001)
+
+            plt.savefig(f'img/new/image_{datetime.datetime.timestamp(datetime.datetime.now())}.png')
+            plt.show(block=False)
+            plt.pause(0.0001)
+
+        else:
+            logger.info('No data to plot!')
 
 
     def init_viewer(self):
@@ -163,63 +202,72 @@ class Viewer(Thread):
 
         # Creates just a figure and only one subplot
         self.fig, self.axs = plt.subplots(6, sharex=True)
-        
+
         try:
             # Maximize window
             plt_maximize()
-        
+
             # Set up the subplots' properties
             for i in range(6):
-                self.axs[i].set_ylabel(self.sensors[i])            
+                info = self.sensor_info[i]
+                self.axs[i].set_ylabel(info["title"])
+
+                if(info["enable_y_limits"]):
+                    self.axs[i].set_ylim(info["min_y_lim"], info["max_y_lim"])
+
+                self.axs[i].xaxis.set_major_locator(plt.MaxNLocator(20))
+
                 self.axs[i].xaxis.set_major_locator(mdates.MinuteLocator())
                 self.axs[i].xaxis.set_major_formatter(mdates.DateFormatter('%H:%M'))
                 self.axs[i].xaxis.set_minor_locator(ticker.AutoMinorLocator())
                 self.axs[i].xaxis.set_minor_formatter(ticker.NullFormatter())
-                
+
                 self.axs[i].xaxis_date()
                 self.axs[i].autoscale_view()
                 self.axs[i].grid(which='major', axis='both', alpha=.3)
-               
+
         except Exception as e:
             print(f'Exception: {str(e)}')
 
 
     def fetch_and_format_data(self):
 
-        """Fetches data from database and formats the retrieved data for plotting"""
-        
+        """Fetches data from database and formats the retrieved data for plotting
+
+           :return : the number of retrieved data records, -1 if exception raises
+        """
+
         try:
-            ## Retrieve data from database
+            # Retrieve data from database
             db_connect = database.connect(self.appconfig.database_filename)
             data = database.retrieve_data(db_connect, self.appconfig.time_window, self.appconfig.table_name)
-            database.disconnect(db_connect) 
+            database.disconnect(db_connect)
 
             logger.debug(f"Total retrieved records: {len(data)}")
 
-            ## Format retrieved data
-            self.timestamps = []
-            self.t0 = []
-            self.t1 = []
-            self.th = []
-            self.ir = []
-            self.bz = []
-            self.ls = []
+            # Format retrieved data
+            timestamps = []
+            t0 = []
+            t1 = []
+            th = []
+            ir = []
+            bz = []
+            ls = []
 
             for item in data:
-                self.timestamps.append(datetime.datetime.strptime(item.timestamp, '%Y/%m/%d %H:%M:%S'))
-                self.t0.append(item.t0 if not (item.t0 == None) else np.nan)
-                self.t1.append(item.t1 if not (item.t1 == None) else np.nan)
-                self.th.append(item.th if not (item.th == None) else np.nan)
-                self.ir.append(item.ir if not (item.ir == None) else np.nan)
-                self.ls.append(item.ls if not (item.ls == None) else np.nan)
-                self.bz.append(item.bz if not (item.bz == None) else np.nan)
-                print(f"{item}")           
+                timestamps.append(datetime.datetime.strptime(item.timestamp, '%Y/%m/%d %H:%M:%S'))
+                t0.append(item.t0 if not (item.t0 is None) else np.nan)
+                t1.append(item.t1 if not (item.t1 is None) else np.nan)
+                th.append(item.th if not (item.th is None) else np.nan)
+                ir.append(item.ir if not (item.ir is None) else np.nan)
+                ls.append(item.ls if not (item.ls is None) else np.nan)
+                bz.append(item.bz if not (item.bz is None) else np.nan)
+                #print(f"{item}")           
 
-            self.columns = [self.timestamps, self.t0, self.t1, self.th, self.ir, self.ls, self.bz]
-                  
-            return 0
+            self.columns = [timestamps, t0, t1, th, ir, ls, bz]
+
+            return len(data)
 
         except Exception as e:
             logger.error(f"An exception has occured [{str(e)}]")
             return -1
-        
