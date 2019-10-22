@@ -4,7 +4,7 @@ from multiprocessing import Queue
 from core import config, monitor, viewer
 from common import utils, logger, recorder
 
-import signal, sys, os
+import os
 import time
 
 
