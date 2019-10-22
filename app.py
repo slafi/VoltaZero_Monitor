@@ -12,15 +12,13 @@ import time
 # Initialize the logger
 logger = logger.get_logger('voltazero_monitor')
 
-# Define main thread stop flag
-# StopFlag = threading.Event()
-
 
 if __name__ == '__main__':
 
     # Clear console
     utils.clear_console()
 
+    logger.info(f'--------------------------------------------------')
     logger.info(f'Main PID: {os.getpid()}')
 
     # Initialization
