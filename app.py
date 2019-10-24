@@ -78,4 +78,3 @@ if __name__ == '__main__':
         if(not appConfig.no_viewer):
             viewer.stop()
             viewer.join()
-
