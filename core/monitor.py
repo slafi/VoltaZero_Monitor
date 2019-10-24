@@ -19,22 +19,23 @@ class Monitor(Process):
     """ Initiates a new process to connect to the server and retrieve
         telemetry data using the MQTT protocol
 
-        :param connection_handler: database connection handler
         :param appconfig: the application configuration object
         :param q: the telemetry data queue
-        :param interval: the time interval at which telemetry data is stored
-        :param batch_size: the maximum number of telemetry records stored at once
-        :param id: the recorder thread identifier
-        :param running: an event controlling the thread operation
+        :param client: the MQTT client
+        :param client_id: the MQTT client identifier
+        :param pid: the recorder process identifier
+        :param stopped: a flag indicating if the process is running
+        :param subscribed: a flag indicating if the client is subscribed to the topic
+        :param connected: a flag indicating if the client is connected to the MQTT server
     """
 
     def __init__(self, appconfig, q, client_id):
 
         """ Initializes the monitor object
 
-        :param q: the telemetry data queue
-        :param appconfig: the application configuration object
-        :param client_id: the assigned client identifier
+            :param q: the telemetry data queue
+            :param appconfig: the application configuration object
+            :param client_id: the assigned client identifier
         """
 
         super(Monitor, self).__init__()
@@ -44,7 +45,7 @@ class Monitor(Process):
         self.subscribed = False
         self.connected = False
         self.client_id = client_id
-        self.Stopped = True
+        self.stopped = True
         self.client = None
 
 
@@ -52,7 +53,7 @@ class Monitor(Process):
 
         """ Initializes the connection to the MQTT broker
 
-            :return: 0 if success or -1 if an exception arises
+            :return: 0 if success or -1 if an exception is raised
         """
 
         try:
@@ -76,18 +77,18 @@ class Monitor(Process):
 
         """ Runs the monitor loop
 
-            :return: 0 if success or -1 if an exception arises
+            :return: 0 if success or -1 if an exception is raised
         """
 
         try:
             self.PID = os.getpid()
             logger.info(f'Monitor PID: {os.getpid()}')
 
-            self.Stopped = False
+            self.stopped = False
             self.init_connection()
 
             if self.client is not None:
-                while not self.Stopped:
+                while not self.stopped:
                     self.client.loop()
 
             return 0
@@ -101,11 +102,11 @@ class Monitor(Process):
 
         """ Stops the monitor process
 
-            :return: 0 if success or -1 if an exception arises
+            :return: 0 if success or -1 if an exception is raised
         """
 
         try:
-            self.Stopped = True
+            self.stopped = True
 
             if self.client is not None and self.connected is True:
                 self.client.unsubscribe(self.appconfig.topic)
@@ -189,7 +190,7 @@ class Monitor(Process):
 
             :param data: the MQTT message payload
             :return: t0, t1, th, bz, lg, ir, id: sensors' readings and
-            device identifier
+                     device identifier
         """
 
         try:
