@@ -79,12 +79,3 @@ if __name__ == '__main__':
             viewer.stop()
             viewer.join()
 
-
-    # For debug, check the data remaining in the queue
-    # Normally, no data should remain in q
-    data = []
-
-    while not q.empty():
-        data.append(q.get())
-
-    print(data)
