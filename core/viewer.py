@@ -18,7 +18,9 @@ import logging
 # Initialize logger for the module
 logger = logging.getLogger('voltazero_monitor')
 
-# Use WXAgg backend for matplot because Tkinter is not thread-safe
+# Uncomment if you want to use WXAgg backend for matplotlib
+# because Tkinter is inherently not thread-safe
+# import matplotlib
 # matplotlib.use('WXAgg')
 
 # Specify the plotting style
@@ -33,18 +35,18 @@ def plt_maximize():
         See: https://stackoverflow.com/a/54708671
     """
 
-    backend = plt.get_backend()
+    backend = plt.get_backend().lower()
     cfm = plt.get_current_fig_manager()
 
-    if backend == "wxAgg":
+    if backend == "wxagg":
         cfm.frame.Maximize(True)
-    elif backend == "TkAgg":
+    elif backend == "tkagg":
         pos = str(system()).lower()
         if pos == "win32" or pos == 'windows':
             cfm.window.state('zoomed')        # This works on windows only
         else:
             cfm.resize(*cfm.window.maxsize())
-    elif backend == 'QT4Agg':
+    elif backend == 'qt4agg':
         cfm.window.showMaximized()
     elif callable(getattr(cfm, "full_screen_toggle", None)):
         if not getattr(cfm, "flag_is_max", None):
@@ -165,7 +167,7 @@ class Viewer(Thread):
             self.enabled = False
 
         except Exception as e:
-            logger.error(f"An exception has occured [{str(e)}]")
+            logger.error(f"Exception: {str(e)}")
 
 
     def draw(self):
@@ -185,20 +187,28 @@ class Viewer(Thread):
                                  marker="o")
                 self.axs[i].set_xlim(min_x_lim, max_x_lim)
 
-            plt.savefig(f'img/new/image_{datetime.datetime.timestamp(datetime.datetime.now())}.png')
-            plt.show(block=False)
-            plt.pause(0.0001)
+                # Uncomment if plot update's screenshot is required
+                # plt.savefig(f'img/new/image_{datetime.datetime.timestamp(datetime.datetime.now())}.png')
 
+                # Show plot without blocking the running process
+                plt.show(block=False)
+                plt.pause(0.0001)
         else:
             logger.info('No data to plot!')
+
+            """for i in range(6):
+                if len(self.axs[i].lines) > 0:
+                    self.axs[i].lines.remove(self.axs[i].lines[0])
+
+                self.axs[i].plot([], [], color='royalblue', marker="o")"""
 
 
     def init_viewer(self):
 
         """Initializes the plot window and figure"""
 
-        # Turn on matplotlib interactive mode
-        plt.ion()
+        # Turn on matplotlib interactive mode if necessary
+        # plt.ion()
 
         # Creates just a figure and only one subplot
         self.fig, self.axs = plt.subplots(6, sharex=True)
@@ -261,13 +271,12 @@ class Viewer(Thread):
                 th.append(item.th if not (item.th is None) else np.nan)
                 ir.append(item.ir if not (item.ir is None) else np.nan)
                 ls.append(item.ls if not (item.ls is None) else np.nan)
-                bz.append(item.bz if not (item.bz is None) else np.nan)
-                #print(f"{item}")           
+                bz.append(item.bz if not (item.bz is None) else np.nan)         
 
             self.columns = [timestamps, t0, t1, th, ir, ls, bz]
 
             return len(data)
 
         except Exception as e:
-            logger.error(f"An exception has occured [{str(e)}]")
+            logger.error(f"Exception: {str(e)}")
             return -1

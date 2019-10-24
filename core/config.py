@@ -20,7 +20,7 @@ class AppConfig():
                             connection string)
         :param topic: MQTT topic
         :param database_filename: the SQlite database filename
-        :param table_name: the data table name
+        :param table_name: the data table name where the telemetry data is stored
         :param time_window: the time interval for telemetry display
         :param recorder_batch_size: the maximum number of telemetry records
                                     saved at once (used by the Recorder)

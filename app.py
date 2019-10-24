@@ -49,7 +49,7 @@ if __name__ == '__main__':
     trecorder.start()
 
     # Start viewer if required
-    if(appConfig.no_viewer):
+    if(not appConfig.no_viewer):
         viewer = viewer.Viewer(appConfig, window_title='Sensors data')
         viewer.start()
     else:
@@ -74,7 +74,7 @@ if __name__ == '__main__':
         trecorder.join()
 
         # stop viewer if already started
-        if(appConfig.no_viewer):
+        if(not appConfig.no_viewer):
             viewer.stop()
             viewer.join()
 

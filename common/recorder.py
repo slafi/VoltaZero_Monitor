@@ -29,8 +29,6 @@ class Recorder(Thread):
 
         :param q: the telemetry data queue
         :param appconfig: the application configuration object
-        :param interval: the time interval at which telemetry data is stored
-        :param batch_size: the maximum number of telemetry records stored at once
         """
 
         Thread.__init__(self)
