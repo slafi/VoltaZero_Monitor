@@ -4,7 +4,7 @@ from common import utils, database
 
 # Import standard packages
 from platform import system
-from threading import Thread, Event, currentThread
+from multiprocessing import Process
 
 import matplotlib.dates as mdates
 import matplotlib.ticker as ticker
@@ -12,6 +12,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import datetime
 import time
+import os
 import logging
 
 
@@ -56,7 +57,7 @@ def plt_maximize():
         raise RuntimeError("plt_maximize() is not implemented for current backend:", backend)
 
 
-class Viewer(Thread):
+class Viewer(Process):
 
     """This class runs the telemetry plot viewer
 
@@ -64,9 +65,8 @@ class Viewer(Thread):
        :param appconfig: the application configuration object
        :param sensor_info: a list of sensor subplots properties
        :param columns: the list of telemetry data arrays
-       :param enabled: a flag indicating if the viewer is enabled
-       :param id: the viewer thread identifier
-       :param running: an event controlling the thread operation
+       :param enabled: a flag indicating if the viewer's process is enabled
+       :param pid: the viewer process identifier
     """
 
     def __init__(self, appconfig, window_title='Sensors data'):
@@ -77,9 +77,7 @@ class Viewer(Thread):
         :param window_title: the plot window title
         """
 
-        Thread.__init__(self)
-        self.running = Event()
-        self.id = currentThread().getName()
+        super(Viewer, self).__init__()
         self.appconfig = appconfig
         self.enabled = False
         self.window_title = window_title
@@ -129,7 +127,6 @@ class Viewer(Thread):
 
         """Starts the viewer thread"""
 
-        self.running.set()
         self.enabled = True
         super(Viewer, self).start()
 
@@ -138,19 +135,29 @@ class Viewer(Thread):
 
         """Stops the viewer thread"""
 
-        self.running.clear()
+        try:
+            self.enabled = False
+
+            super(Viewer, self).terminate()
+            return 0
+
+        except Exception as e:
+            logger.error(f"Exception: {str(e)}")
+            return -1
 
 
     def run(self):
 
         """ Runs the viewer infinite loop """
+        self.PID = os.getpid()
+        logger.info(f'Viewer PID: {os.getpid()}')
 
         # Initialize plot
         self.init_viewer()
 
         try:
             # insert data in database
-            while (self.running.isSet()):
+            while (self.enabled):
                 # Update plot
                 nrecords = self.fetch_and_format_data()
 
@@ -163,11 +170,11 @@ class Viewer(Thread):
                 # Sleep viewer thread
                 time.sleep(self.appconfig.viewer_interval)
 
-            # Declare the thread instance disabled
-            self.enabled = False
-
         except Exception as e:
             logger.error(f"Exception: {str(e)}")
+
+        except KeyboardInterrupt:
+            self.enabled = False
 
 
     def draw(self):
@@ -187,7 +194,7 @@ class Viewer(Thread):
                                  marker="o")
                 self.axs[i].set_xlim(min_x_lim, max_x_lim)
 
-                # Uncomment if plot update's screenshot is required
+                # Uncomment if plot update's screenshots are required
                 # plt.savefig(f'img/new/image_{datetime.datetime.timestamp(datetime.datetime.now())}.png')
 
                 # Show plot without blocking the running process
@@ -195,12 +202,6 @@ class Viewer(Thread):
                 plt.pause(0.0001)
         else:
             logger.info('No data to plot!')
-
-            """for i in range(6):
-                if len(self.axs[i].lines) > 0:
-                    self.axs[i].lines.remove(self.axs[i].lines[0])
-
-                self.axs[i].plot([], [], color='royalblue', marker="o")"""
 
 
     def init_viewer(self):

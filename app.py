@@ -55,15 +55,16 @@ if __name__ == '__main__':
     else:
         logger.info('The viewer is disabled.')
 
-    # Sleep main thread
-    while True:
-        try:
-            time.sleep(500)
-        except KeyboardInterrupt:
-            logger.info("Stopping all threads and processes...")
-            break
-
     try:
+        # Sleep main thread
+        while True:
+            time.sleep(1)
+
+    except Exception as e:
+        print(f'Exception: {str(e)}')
+
+    except KeyboardInterrupt:
+        logger.info("Stopping all threads and processes... (This may take few seconds)")
 
         # Stop the monitor process
         pmonitor.stop()
@@ -73,13 +74,11 @@ if __name__ == '__main__':
         trecorder.stop()
         trecorder.join()
 
-        # stop viewer if already started
+        # Stop viewer process if already started
         if(not appConfig.no_viewer):
             viewer.stop()
             viewer.join()
 
-    except Exception as e:
-        print(f'Exception: {str(e)}')
 
     # For debug, check the data remaining in the queue
     # Normally, no data should remain in q
