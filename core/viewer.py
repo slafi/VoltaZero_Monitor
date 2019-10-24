@@ -245,7 +245,7 @@ class Viewer(Process):
 
         """Fetches data from database and formats the retrieved data for plotting
 
-           :return : the number of retrieved data records, -1 if exception raises
+           :return : the number of retrieved data records, -1 if exception is raised
         """
 
         try:
