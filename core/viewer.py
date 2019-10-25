@@ -195,7 +195,7 @@ class Viewer(Process):
                 self.axs[i].set_xlim(min_x_lim, max_x_lim)
 
                 # Uncomment if plot update's screenshots are required
-                # plt.savefig(f'img/new/image_{datetime.datetime.timestamp(datetime.datetime.now())}.png')
+                # plt.savefig(f'img/image_{datetime.datetime.timestamp(datetime.datetime.now())}.png')
 
                 # Show plot without blocking the running process
                 plt.show(block=False)

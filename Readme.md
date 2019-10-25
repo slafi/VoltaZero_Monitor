@@ -11,7 +11,7 @@ One Paragraph of project description goes here
 The VoltaZero Sensing Unit (VSU) wirelessly relays data to the Helium Atom at regular time intervals. The latter publishes the relayed data to the public Helium MQTT server. Any software application can use a MQTT client and the relevant authentication credentials in order to subscribe to the appropriate topic to which telemetry data is published. The VoltaZero Monitor uses the [paho-mqtt](https://pypi.org/project/paho-mqtt/) client in order to retrieve the data published by the VSU/Helium Atom.
 
 ![Data Flow](./resources/data_flow.png)
-*The VoltaZero Monitor retrieves and processes the telemetry messages published to the Helium MQTT server.*
+*The VoltaZero Monitor retrieves and processes the telemetry messages published to the Helium MQTT server*
 
 ### Telemetry Data Structure
 
@@ -130,6 +130,14 @@ Explain what these tests test and why
 Give an example
 ```
 
+## Known Limitations
+
+Tkinter does not offer a thread-safe backend for matplotlib. Thus, an exception might be raised when stopping the application due to running the Viewer instance on a distinct thread. As a workaround, other backends may be used (e.g., wxAgg).
+
+## Versioning
+
+We use [SemVer](http://semver.org/) for versioning. For the versions available, see the [tags on this repository](https://github.com/your/project/tags).
+
 ## Deployment
 
 Add additional notes about how to deploy this on a live system
@@ -143,14 +151,6 @@ Add additional notes about how to deploy this on a live system
 
 * [Python 3](https://www.python.org/)
 
-## Known Limitations
-
-Tkinter does not offer a thread-safe backend for matplotlib. Thus, an exception might be raised when stopping the application due to running the Viewer instance on a distinct thread. As a workaround, other backends may be used (e.g., wxAgg).
-
-## Versioning
-
-We use [SemVer](http://semver.org/) for versioning. For the versions available, see the [tags on this repository](https://github.com/your/project/tags). 
-
 ## Authors
 
 * **Sabeur Lafi** - *Initial work*
@@ -158,3 +158,7 @@ We use [SemVer](http://semver.org/) for versioning. For the versions available, 
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Related Projects
+
+* [VoltaZero Shield](https://github.com/slafi/VoltaZero)
