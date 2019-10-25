@@ -34,7 +34,7 @@ All these fields are presented in JSON format as follows:
 
 ## MQTT Server Credentials
 
-For the VSU to flawlessly operate as intended, both the attached Helium Atom and Element should be activated and setup using the user's dashboard in the [Helium website](https://legacy.helium.com/). The VSU should also be configured to use the MQTT channel (see [VoltaZero Configuration](https://github.com/slafi/VoltaZero_Sensing_Unit/blob/master/source/vzero_102/config.h)).
+For the VSU to flawlessly operate as intended, both the attached Helium Atom and Element should be activated and setup using the user's dashboard in the [Helium website](https://legacy.helium.com/). The VSU should also be configured to use the MQTT channel (see [VoltaZero Sensing Unit Configuration](https://github.com/slafi/VoltaZero_Sensing_Unit/blob/master/source/vzero_102/config.h)).
 
 The authentication credentials are provided by the Helium MQTT server connection string which can be retrieved from the MQTT channel page in the user's dashboard (see screenshot below). This connection string is typically formatted as follows: 
 
