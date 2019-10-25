@@ -1,6 +1,6 @@
 # Project Description
 
-As part of an end-to-end cloud-based Internet-of-Things (IoT) solution, this project implements a Python application to acquire, process, store and display the [VoltaZero Sensing Unit (VSU)](https://github.com/slafi/VoltaZero) telemetry data. For this purpose, the application, namely VoltaZero Monitor, takes advantage of Python multiprocessing capabilities and the [Eclipse Paho MQTT Python client library](https://pypi.org/project/paho-mqtt/) to demonstrate the ability of developing software tools consuming the VSU telemetry data.
+As part of an end-to-end cloud-based Internet-of-Things (IoT) solution, this project implements a Python application to acquire, process, store and display the [VoltaZero Sensing Unit (VSU)](https://github.com/slafi/VoltaZero_Sensing_Unit) telemetry data. For this purpose, the application, namely VoltaZero Monitor, takes advantage of Python multiprocessing capabilities and the [Eclipse Paho MQTT Python client library](https://pypi.org/project/paho-mqtt/) to demonstrate the ability of developing software tools consuming the VSU telemetry data.
 
 # System Overview
 
@@ -34,7 +34,7 @@ All these fields are presented in JSON format as follows:
 
 ## MQTT Server Credentials
 
-For the VSU to flawlessly operate as intended, both the attached Helium Atom and Element should be activated and setup using the user's dashboard in the [Helium website](https://legacy.helium.com/). The VSU should also be configured to use the MQTT channel (see [VoltaZero Configuration](https://github.com/slafi/VoltaZero/blob/master/source/vzero_102/config.h)).
+For the VSU to flawlessly operate as intended, both the attached Helium Atom and Element should be activated and setup using the user's dashboard in the [Helium website](https://legacy.helium.com/). The VSU should also be configured to use the MQTT channel (see [VoltaZero Configuration](https://github.com/slafi/VoltaZero_Sensing_Unit/blob/master/source/vzero_102/config.h)).
 
 The authentication credentials are provided by the Helium MQTT server connection string which can be retrieved from the MQTT channel page in the user's dashboard (see screenshot below). This connection string is typically formatted as follows: 
 
@@ -101,7 +101,7 @@ The VoltaZero Monitor is configured through a [JSON file](./core/config_template
 
 Prior to running the VoltaZero Monitor, one should go through this short checklist:
 
-1. The VSU/Helium Atom should be up and running (see details in [VoltaZero Shield](https://github.com/slafi/VoltaZero) project)
+1. The VSU/Helium Atom should be up and running (see details in [VoltaZero Sensing Unit](https://github.com/slafi/VoltaZero_Sensing_Unit) project)
 2. Copy the JSON file [`config_template.json`](./core/config_template.json) and rename it as `config.json`
 3. Edit the file `config.json` to add the authentication information and configure the recorder and viewer parameters as desired
 4. Install the required dependencies listed in the requirements file by issuing the command: `pip install -r requirements.txt`
@@ -183,4 +183,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Related Projects
 
-* [VoltaZero Shield](https://github.com/slafi/VoltaZero)
+* [VoltaZero Sensing Unit](https://github.com/slafi/VoltaZero_Sensing_Unit)
